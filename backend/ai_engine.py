@@ -1,27 +1,28 @@
-RECIPES = [
-    {
-        "name": "Tomato Omelette",
-        "ingredients": ["tomato", "egg", "onion"],
-        "steps": "Beat eggs, add tomato & onion, cook on pan."
-    },
-    {
-        "name": "Onion Egg Bhurji",
-        "ingredients": ["egg", "onion", "oil"],
-        "steps": "Cook onion, add eggs, scramble well."
-    }
-]
+from models import Recipe
 
 def suggest_recipes(user_ingredients):
     suggestions = []
 
-    for recipe in RECIPES:
+    # Fetch recipes from DB
+    recipes = Recipe.query.all()
+
+    for recipe in recipes:
+        recipe_ingredients = [
+            i.strip().lower() for i in recipe.ingredients.split(",")
+        ]
+
         match_count = len(
-            set(user_ingredients).intersection(recipe["ingredients"])
+            set(user_ingredients).intersection(recipe_ingredients)
         )
 
         if match_count > 0:
-            recipe["match_score"] = match_count
-            suggestions.append(recipe)
+            suggestions.append({
+                "id": recipe.id,
+                "title": recipe.title,
+                "ingredients": recipe.ingredients,
+                "steps": recipe.steps,
+                "match_score": match_count
+            })
 
     suggestions.sort(key=lambda x: x["match_score"], reverse=True)
     return suggestions
